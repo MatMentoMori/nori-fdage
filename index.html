@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Scrolling List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- SIZING & COLOR VARIABLES --- */
+        :root {
+            --card-scale: 1.5; /* Master scaling variable for non-font properties */
+
+            --color-bg: #DCE7F4; /* Light blue - Page Background */
+            --color-card-default: #ACC6EA; /* Light Blue - Default Card Background */
+            --color-card-center: #ACC6EA;  /* Light Blue - Centered Card Background */
+            --color-text-default: #5689CD; /* Blue - Default Text */
+            --color-text-center: #2B5791; /* Darker Blue - Centered Text */
+            --color-border-default: #fff; /* White - Default Border */
+            --color-border-center: #ffffff; /* White - Centered Border */
+        }
+
+        /* Custom font */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent the main page from scrolling */
+            background-color: var(--color-bg);
+        }
+
+        /* The main scrollable container for the list */
+        #scroll-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory; 
+            padding: 40vh 0; /* Add significant padding to allow items to center */
+            box-sizing: border-box;
+        }
+        
+        /* New Heading Style */
+        .main-heading {
+            text-align: center;
+            color: var(--color-text-center);
+            font-weight: 700;
+            margin-bottom: calc(40px * var(--card-scale));
+            scroll-snap-align: center;
+            font-size: clamp(2rem, 2rem + 4vw, 5rem);
+             /* Add transition for smooth scaling and fading */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+
+        /* A container for each event row. */
+        .event-row {
+            display: flex; /* Use flexbox for internal layout */
+            align-items: center;
+            background-color: var(--color-card-default);
+            border-radius: calc(0.75rem * var(--card-scale));
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: calc(25px * var(--card-scale)) auto; /* Vertical spacing between cards */
+            width: 90%;
+            max-width: calc(600px * var(--card-scale)); /* Increased max-width slightly */
+            padding: calc(1rem * var(--card-scale)) calc(1.5rem * var(--card-scale));
+            scroll-snap-align: center; /* Snap this item to the center of the viewport */
+            /* Add transitions for smooth styling changes */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out, background-color 0.3s ease-out;
+            cursor: pointer; /* Add pointer cursor to indicate clickability */
+        }
+
+        /* New circular image placeholder */
+        .image-placeholder {
+            width: calc(60px * var(--card-scale));
+            height: calc(60px * var(--card-scale));
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0; /* Prevent the circle from squishing */
+        }
+
+        /* Left side (days) - now has a left border */
+        .days-section {
+            text-align: center;
+            padding-left: calc(1.5rem * var(--card-scale));
+            margin-left: calc(1.5rem * var(--card-scale));
+            border-left: 1px solid var(--color-border-default);
+            transition: border-color 0.3s ease-out;
+        }
+
+        /* Right side (details) */
+        .details-section {
+            text-align: left;
+            margin-left: calc(1.5rem * var(--card-scale)); /* Add space between days and details */
+        }
+
+        /* Default text styles */
+        .days-number,
+        .days-label,
+        .name,
+        .event-type {
+            color: var(--color-text-default);
+            transition: color 0.3s ease-out; /* Add transition for text color */
+        }
+
+        /* Using clamp() for fluid typography */
+        .days-number { font-size: clamp(1.5rem, 1.5rem + 3vw, 4rem); font-weight: 700; line-height: 1; }
+        .days-label { font-size: clamp(0.7rem, 0.7rem + .5vw, 1rem); text-transform: uppercase; }
+        .name { font-size: clamp(1.5rem, 1.2rem + 1vw, 2.5rem); font-weight: 700; line-height: clamp(1.7rem, 1.7rem + 1vw, 2.5rem); }
+        .event-type { font-size: clamp(0.7rem, 0.7rem + .5vw, 1em); text-transform: uppercase; }
+
+        /* --- STYLES FOR THE CENTERED CARD --- */
+        .event-row.is-center {
+            background-color: var(--color-card-center);
+            cursor: default; /* Remove pointer cursor when card is centered */
+        }
+
+        .event-row.is-center .days-section {
+            border-left-color: var(--color-border-center);
+        }
+
+        .event-row.is-center .days-number,
+        .event-row.is-center .days-label,
+        .event-row.is-center .name,
+        .event-row.is-center .event-type {
+            color: var(--color-text-center);
+        }
+        
+        /* --- MOBILE BREAKPOINT --- */
+        @media (max-width: 550px) {
+            .days-number { font-size: 2rem; font-weight: 700; line-height: 1; }
+                    .name { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
+                    
+.image-placeholder {
+            width: calc(50px * var(--card-scale));
+            height: calc(50px * var(--card-scale));
+}
+            
+            .event-row {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 0rem;
+                padding: 1.5rem;
+            }
+
+            .image-placeholder {
+                grid-column: 1 / 2;
+                grid-row: 1 / 2;
+                margin: 0 auto;
+            }
+
+            .days-section {
+                grid-column: 1 / 2;
+                grid-row: 2 / 3;
+                padding: .5rem 0 0 0;
+                margin: 0 auto;
+                border-left: none;
+            }
+
+            .details-section {
+                grid-column: 2 / 3;
+                grid-row: 1 / 3;
+                margin: 1.5rem;
+                padding-left: 1.5rem;
+                border-left: 1px solid var(--color-border-default);
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .event-row.is-center .details-section {
+                border-left-color: var(--color-border-center);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="scroll-container">
+        <h1 class="main-heading">Fødselsdagsliste:</h1>
+        <div id="event-list-wrapper">
+             <!-- Event rows will be dynamically inserted here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            const events = [
+                { name: 'Mathias Ole Brocks',           type: 'Fødselsdag', birthday: '1983-06-28', image: 'images/mathias.png' },
+                { name: 'Nori Meyer Schmidt Brocks',    type: 'Fødselsdag', birthday: '2018-11-02', image: 'images/nori.png' },
+                { name: 'Lin Maria Meyer Schmidt',      type: 'Fødselsdag', birthday: '1986-08-29', image: 'images/lin.png' },
+                { name: 'Viggo Brocks',                 type: 'Fødselsdag', birthday: '1995-05-25', image: 'images/viggo.png' },
+                { name: 'Kaisa Breer Brocks',           type: 'Fødselsdag', birthday: '2006-01-04', image: 'images/kaisa.png' },
+                { name: 'Aija Breer Brocks',            type: 'Fødselsdag', birthday: '2008-09-29', image: 'images/aija.png' },
+                { name: 'Nina Brocks',                  type: 'Fødselsdag', birthday: '1979-08-02', image: 'images/nina.png' },
+                { name: 'Katrine Brocks',               type: 'Fødselsdag', birthday: '1978-10-15', image: 'images/katrine.png' },
+                { name: 'Ursula',                       type: 'Fødselsdag', birthday: '1988-04-05', image: 'images/ursula.png' },
+                { name: 'Maja Gunilla Meyer Schmidt',   type: 'Fødselsdag', birthday: '1988-03-13', image: 'images/Maja.png' },
+                { name: 'Anders Gerring ',              type: 'Fødselsdag', birthday: '1988-10-15', image: 'images/Anders.png' },
+                { name: 'Birgitte Meyer',               type: 'Fødselsdag', birthday: '1988-06-30', image: 'images/Birgitte.png' },
+                { name: 'Henrik Schmidt',               type: 'Fødselsdag', birthday: '1988-12-01', image: 'images/Henrik.png' },
+                { name: 'Anne Brocks',                  type: 'Fødselsdag', birthday: '1988-01-21', image: 'images/Anne.png' },
+                { name: 'Peter Brocks',                 type: 'Fødselsdag', birthday: '1988-04-13', image: 'images/Peter.png' },
+                { name: 'Mike ',                        type: 'Fødselsdag', birthday: '1988-10-15', image: 'images/Mike.png' },
+                { name: 'Sophus',                       type: 'Fødselsdag', birthday: '1988-10-15', image: 'images/Sophus.png' },
+            ];
+
+            const scrollContainer = document.getElementById('scroll-container');
+            const eventListWrapper = document.getElementById('event-list-wrapper');
+            
+            // --- FUNCTIONS ---
+            
+            function getDaysUntilNextBirthday(birthday) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+                let nextBirthday = new Date(birthday);
+                nextBirthday.setFullYear(today.getFullYear());
+                if (nextBirthday < today) {
+                    nextBirthday.setFullYear(today.getFullYear() + 1);
+                }
+                const msPerDay = 1000 * 60 * 60 * 24;
+                return Math.ceil((nextBirthday - today) / msPerDay);
+            }
+
+            function processEvents() {
+                events.forEach(event => {
+                    const birthdayDate = new Date(event.birthday);
+                    event.days = getDaysUntilNextBirthday(birthdayDate);
+                });
+            }
+
+            function sortEvents() {
+                events.sort((a, b) => a.days - b.days);
+            }
+
+            function renderEvents() {
+                let content = '';
+                // Render the list only once
+                events.forEach(event => {
+                    content += `
+                        <div class="event-row">
+                            <div class="image-placeholder" style="background-image: url('${event.image}')"></div>
+                            <div class="days-section">
+                                <div class="days-number">${event.days}</div>
+                                <div class="days-label">Dage Til</div>
+                            </div>
+                            <div class="details-section">
+                                <div class="name">${event.name}</div>
+                                <div class="event-type">${event.type}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                eventListWrapper.innerHTML = content;
+            }
+
+            function updateCardStyles() {
+                const viewportCenter = window.innerHeight / 2;
+                const elementsToUpdate = document.querySelectorAll('.event-row, .main-heading');
+                const centerThreshold = 20;
+
+                elementsToUpdate.forEach(el => {
+                    const rowRect = el.getBoundingClientRect();
+                    const rowCenter = rowRect.top + rowRect.height / 2;
+                    
+                    const distance = Math.abs(viewportCenter - rowCenter);
+                    
+                    if (el.classList.contains('event-row') && distance < centerThreshold) {
+                        el.classList.add('is-center');
+                    } else {
+                        el.classList.remove('is-center');
+                    }
+                    
+                    const maxDistance = viewportCenter;
+                    const effect = Math.min(distance / maxDistance, 1);
+                    const scale = 1 - (effect * 0.3); 
+                    const opacity = 1 - (effect * 0.9);
+
+                    el.style.transform = `scale(${scale})`;
+                    el.style.opacity = opacity;
+                });
+            }
+            
+            function setupScrollListener() {
+                const heading = document.querySelector('.main-heading');
+                if (!heading) return;
+
+                const initialScrollTop = heading.offsetTop - (scrollContainer.clientHeight / 2) + (heading.offsetHeight / 2);
+                scrollContainer.scrollTop = initialScrollTop;
+
+                setTimeout(() => {
+                    const firstCard = document.querySelector('.event-row');
+                    if (firstCard) {
+                        const targetScrollTop = firstCard.offsetTop - (scrollContainer.clientHeight / 2) + (firstCard.offsetHeight / 2);
+                        scrollContainer.scrollTo({
+                            top: targetScrollTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 1000); 
+
+                scrollContainer.addEventListener('scroll', updateCardStyles);
+            }
+
+            // New function to handle clicks on cards
+            function setupClickListener() {
+                eventListWrapper.addEventListener('click', (e) => {
+                    const clickedCard = e.target.closest('.event-row');
+                    // Only scroll if the clicked card exists and is NOT already in the center
+                    if (clickedCard && !clickedCard.classList.contains('is-center')) {
+                        const targetScrollTop = clickedCard.offsetTop - (scrollContainer.clientHeight / 2) + (clickedCard.offsetHeight / 2);
+                        scrollContainer.scrollTo({
+                            top: targetScrollTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            }
+
+            // --- INITIALIZATION ---
+            processEvents();
+            sortEvents();
+            renderEvents();
+            setupScrollListener();
+            setupClickListener(); // Initialize the new click listener
+            updateCardStyles(); // Initial style update
+
+        });
+    </script>
+</body>
+</html>
