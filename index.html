@@ -27,6 +27,16 @@
             background-color: var(--color-bg);
         }
 
+        /* New Particle Canvas Style */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place it behind all other content */
+        }
+
         /* The main scrollable container for the list */
         #scroll-container {
             height: 100vh;
@@ -42,7 +52,7 @@
             text-align: center;
             color: var(--color-text-center);
             font-weight: 700;
-            margin-bottom: calc(40px * var(--card-scale));
+            margin-bottom: calc(20px * var(--card-scale));
             scroll-snap-align: center;
             font-size: clamp(2rem, 2rem + 4vw, 5rem);
              /* Add transition for smooth scaling and fading */
@@ -56,7 +66,7 @@
             background-color: var(--color-card-default);
             border-radius: calc(0.75rem * var(--card-scale));
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            margin: calc(25px * var(--card-scale)) auto; /* Vertical spacing between cards */
+            margin: calc(16px * var(--card-scale)) auto; /* Vertical spacing between cards */
             width: 90%;
             max-width: calc(600px * var(--card-scale)); /* Increased max-width slightly */
             padding: calc(1rem * var(--card-scale)) calc(1.5rem * var(--card-scale));
@@ -121,6 +131,9 @@
         .event-row.is-center .name,
         .event-row.is-center .event-type {
             color: var(--color-text-center);
+            
+            
+
         }
         
         /* --- MOBILE BREAKPOINT --- */
@@ -174,7 +187,7 @@
     </style>
 </head>
 <body>
-
+    <canvas id="particle-canvas"></canvas>
     <div id="scroll-container">
         <h1 class="main-heading">Fødselsdagsliste:</h1>
         <div id="event-list-wrapper">
@@ -184,7 +197,52 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DATA ---
+            // --- PARTICLE SYSTEM ---
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function createParticles() {
+                particles = [];
+                const particleCount = 50;
+                const colors = ['#ACC6EA', '#5689CD', '#2B5791', '#fff'];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 3 + 1,
+                        dx: (Math.random() - 0.5) * 0.5,
+                        dy: (Math.random() - 0.5) * 0.5,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let particle of particles) {
+                    particle.x += particle.dx;
+                    particle.y += particle.dy;
+
+                    if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+                }
+
+                requestAnimationFrame(animateParticles);
+            }
+
+            // --- BIRTHDAY LIST ---
             const events = [
                 { name: 'Mathias Ole Brocks',           type: 'Fødselsdag', birthday: '1983-06-28', image: 'images/Mathias.png' },
                 { name: 'Nori Meyer Schmidt Brocks',    type: 'Fødselsdag', birthday: '2018-11-02', image: 'images/Nori.png' },
@@ -207,8 +265,6 @@
 
             const scrollContainer = document.getElementById('scroll-container');
             const eventListWrapper = document.getElementById('event-list-wrapper');
-            
-            // --- FUNCTIONS ---
             
             function getDaysUntilNextBirthday(birthday) {
                 const today = new Date();
@@ -235,7 +291,6 @@
 
             function renderEvents() {
                 let content = '';
-                // Render the list only once
                 events.forEach(event => {
                     content += `
                         <div class="event-row">
@@ -274,7 +329,7 @@
                     const maxDistance = viewportCenter;
                     const effect = Math.min(distance / maxDistance, 1);
                     const scale = 1 - (effect * 0.3); 
-                    const opacity = 1 - (effect * 0.5);
+                    const opacity = 1 - (effect *0);
 
                     el.style.transform = `scale(${scale})`;
                     el.style.opacity = opacity;
@@ -285,19 +340,15 @@
                 const firstCard = document.querySelector('.event-row');
                 if (!firstCard) return;
 
-                // Calculate the scroll position to center the first card and set it immediately
                 const initialScrollTop = firstCard.offsetTop - (scrollContainer.clientHeight / 2) + (firstCard.offsetHeight / 2);
                 scrollContainer.scrollTop = initialScrollTop;
 
-                // Add a listener to update styles on scroll
                 scrollContainer.addEventListener('scroll', updateCardStyles);
             }
 
-            // New function to handle clicks on cards
             function setupClickListener() {
                 eventListWrapper.addEventListener('click', (e) => {
                     const clickedCard = e.target.closest('.event-row');
-                    // Only scroll if the clicked card exists and is NOT already in the center
                     if (clickedCard && !clickedCard.classList.contains('is-center')) {
                         const targetScrollTop = clickedCard.offsetTop - (scrollContainer.clientHeight / 2) + (clickedCard.offsetHeight / 2);
                         scrollContainer.scrollTo({
@@ -309,12 +360,22 @@
             }
 
             // --- INITIALIZATION ---
+            // Particle System
+            resizeCanvas();
+            createParticles();
+            animateParticles();
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                createParticles(); // Recreate particles for new size
+            });
+
+            // Birthday List
             processEvents();
             sortEvents();
             renderEvents();
             setupScrollListener();
-            setupClickListener(); // Initialize the new click listener
-            updateCardStyles(); // Initial style update
+            setupClickListener(); 
+            updateCardStyles(); 
 
         });
     </script>
