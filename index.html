@@ -274,7 +274,7 @@
                     const maxDistance = viewportCenter;
                     const effect = Math.min(distance / maxDistance, 1);
                     const scale = 1 - (effect * 0.3); 
-                    const opacity = 1 - (effect * 0.9);
+                    const opacity = 1 - (effect * 0.5);
 
                     el.style.transform = `scale(${scale})`;
                     el.style.opacity = opacity;
@@ -282,23 +282,14 @@
             }
             
             function setupScrollListener() {
-                const heading = document.querySelector('.main-heading');
-                if (!heading) return;
+                const firstCard = document.querySelector('.event-row');
+                if (!firstCard) return;
 
-                const initialScrollTop = heading.offsetTop - (scrollContainer.clientHeight / 2) + (heading.offsetHeight / 2);
+                // Calculate the scroll position to center the first card and set it immediately
+                const initialScrollTop = firstCard.offsetTop - (scrollContainer.clientHeight / 2) + (firstCard.offsetHeight / 2);
                 scrollContainer.scrollTop = initialScrollTop;
 
-                setTimeout(() => {
-                    const firstCard = document.querySelector('.event-row');
-                    if (firstCard) {
-                        const targetScrollTop = firstCard.offsetTop - (scrollContainer.clientHeight / 2) + (firstCard.offsetHeight / 2);
-                        scrollContainer.scrollTo({
-                            top: targetScrollTop,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 1000); 
-
+                // Add a listener to update styles on scroll
                 scrollContainer.addEventListener('scroll', updateCardStyles);
             }
 
